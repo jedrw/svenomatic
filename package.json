@@ -1,0 +1,20 @@
+{
+  "name": "svenomatic",
+  "version": "1.0.0",
+  "description": "Automatic Svenning!",
+  "main": "index.mjs",
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.7.5"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "eufy-robovac": "^1.4.6",
+    "https": "^1.0.0",
+    "pino": "^9.5.0"
+  }
+}

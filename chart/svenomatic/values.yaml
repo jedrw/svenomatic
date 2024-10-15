@@ -1,0 +1,43 @@
+# Default values for gnomed.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  registry: docker.lupinelab.co.uk
+  repository: lupinelab
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: latest
+  username: ""
+  password: ""
+
+config:
+  REFRESH_INTERVAL: ""
+  MONITORED_MACADDRESSES: ""
+  OPENWRT_HOST: ""
+  OPENWRT_USERNAME: ""
+  ROBOVAC_IP: ""
+
+secrets:
+  OPENWRT_PASSWORD: ""
+  ROBOVAC_DEVICE_ID: ""
+  ROBOVAC_LOCAL_KEY: ""
+
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+podLabels: {}
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 100Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
