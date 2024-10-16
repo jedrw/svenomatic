@@ -7,10 +7,6 @@ jobs:
   build_and_push_image:
     docker:
       - image: cimg/base:current
-    parameters:
-      push:
-        type: boolean
-        default: false
     steps:
       - setup_remote_docker
       - checkout
@@ -18,14 +14,8 @@ jobs:
           name: Login to registry
           command: docker login docker.lupinelab.co.uk -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD
       - run:
-          name: Build image
-          command: docker build -t docker.lupinelab.co.uk/${CIRCLE_PROJECT_USERNAME,,}/$CIRCLE_PROJECT_REPONAME:$CIRCLE_SHA1 .
-      - when:
-          condition: << parameters.push >>
-          steps:
-            - run:
-                name: Push image
-                command: docker push docker.lupinelab.co.uk/${CIRCLE_PROJECT_USERNAME,,}/$CIRCLE_PROJECT_REPONAME:$CIRCLE_SHA1
+          name: Build and push image
+          command: docker build -t docker.lupinelab.co.uk/${CIRCLE_PROJECT_USERNAME,,}/$CIRCLE_PROJECT_REPONAME:$CIRCLE_SHA1 . --push
 
   deploy:
     docker:
@@ -74,7 +64,6 @@ workflows:
   build_and_deploy:
     jobs:
       - build_and_push_image:
-          push: true
           context:
             - docker.lupinelab.co.uk
           filters:
