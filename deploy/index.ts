@@ -1,41 +1,32 @@
 import * as pulumi from "@pulumi/pulumi";
-import {
-  Deployment,
-  getEnv,
-  hostnamePrefix,
-  k8sProvider,
-} from "@lupinelab/tk3s-deployment";
+import { Deployment, getEnv, k8sProvider } from "@lupinelab/tk3s-deployment";
 
 export = async () => {
   const appName = pulumi.getProject();
-  const hostname = `${hostnamePrefix()}${appName}.lupinelab.co.uk`;
-  const expose = getEnv(true) == "production" ? "external" : "internal";
   const releaseName = `${getEnv()}-${appName}`;
   new Deployment(
-    "svenomatic",
+    appName,
     {
-      hostname,
-      expose,
       name: releaseName,
-      chart: "../chart/svenomatic",
+      chart: `../chart/${appName}`,
       namespace: releaseName,
       createNamespace: true,
       values: {
         image: {
-          tag: process.env["RIDEWEATHER_VERSION"] || process.env["CIRCLE_SHA1"],
+          tag: process.env["SVENOMATIC_VERSION"] || process.env["CIRCLE_SHA1"],
           username: process.env["REGISTRY_USERNAME"],
           password: process.env["REGISTRY_PASSWORD"],
         },
         config: {
-          MONITORED_MACADDRESSES: "",
-          OPENWRT_HOST: "",
-          OPENWRT_USERNAME: "",
-          ROBOVAC_IP: "",
+          MONITORED_MACADDRESSES: "FE:93:D6:9E:52:AC,1E:16:3D:AE:F2:63",
+          OPENWRT_HOST: "192.168.200.252",
+          OPENWRT_USERNAME: appName,
+          ROBOVAC_IP: "192.168.111.9",
         },
         secrets: {
-          OPENWRT_PASSWORD: "",
-          ROBOVAC_DEVICE_ID: "",
-          ROBOVAC_LOCAL_KEY: "",
+          OPENWRT_PASSWORD: process.env["OPENWRT_PASSWORD"],
+          ROBOVAC_DEVICE_ID: process.env["ROBOVAC_DEVICE_ID"],
+          ROBOVAC_LOCAL_KEY: process.env["ROBOVAC_LOCAL_KEY"],
         },
       },
     },
