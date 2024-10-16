@@ -25,7 +25,7 @@ export class LUCI {
       const tokenRes = await this.client.post("/auth", `${authParams}`);
       this.token = tokenRes.data.result;
     } catch (error) {
-      console.log("Authentication failed");
+      console.log("authentication failed");
     }
   }
 
@@ -40,12 +40,12 @@ export class LUCI {
 
       const entries = result.data.result;
       if (entries == null) {
-        throw new Error("Entry not found");
+        throw new Error("entry not found");
       }
 
       return entries.filter((device) => device.startsWith("wlan"));
     } catch (e) {
-      if (e.message == "Entry not found") {
+      if (e.message == "entry not found") {
         console.log(e);
       }
     }
@@ -63,11 +63,11 @@ export class LUCI {
 
       const entries = result.data.result;
       if (entries == null) {
-        throw new Error("Entry not found");
+        throw new Error("entry not found");
       }
       return entries;
     } catch (e) {
-      if (e.message == "Entry not found") {
+      if (e.message == "entry not found") {
         console.log(e);
       }
     }
@@ -76,11 +76,10 @@ export class LUCI {
   async autoUpdateToken(interval) {
     return setInterval(async () => {
       try {
-        console.log(`Old token ${this.token}`);
         await this.init();
-        console.log(`New token ${this.token}`);
+        console.log("updated robovac token");
       } catch (error) {
-        console.log("Authentication failed");
+        console.log("token update failed");
       }
     }, interval);
   }

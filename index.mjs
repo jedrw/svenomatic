@@ -1,4 +1,5 @@
 import * as pino from "pino";
+import * as timers from "timers/promises";
 import { exit } from "process";
 import { LUCI } from "./luci.mjs";
 import * as eufyrobovac from "eufy-robovac";
@@ -10,12 +11,13 @@ const LOG_LEVEL =
 const ROBOVAC_DEBUG = !!process.env.ROBOVAC_DEBUG;
 
 const POLL_INTERVAL = process.env.POLL_INTERVAL ?? 1000 * 60;
+const TRIGGER_DELAY = process.env.TRIGGER_DELAY ?? 1000 * 60 * 5;
 const MONITORED_MACADDRESSES = process.env.MONITORED_MACADDRESSES
   ? process.env.MONITORED_MACADDRESSES.toUpperCase().split(",")
   : [];
 
 const OPENWRT_HOST = process.env.OPENWRT_HOST;
-const OPENWRT_USERNAME = process.env.OPENWRT_USERNAME ?? "root";
+const OPENWRT_USERNAME = process.env.OPENWRT_USERNAME;
 const OPENWRT_PASSWORD = process.env.OPENWRT_PASSWORD;
 
 const ROBOVAC_DEVICE_ID = process.env.ROBOVAC_DEVICE_ID;
@@ -30,7 +32,11 @@ const logger = pino.pino({
 
 async function main() {
   if (MONITORED_MACADDRESSES.length === 0) {
-    throw new Error("No monitored mac addresses are set");
+    throw new Error("No monitored mac addresses set");
+  }
+
+  if (POLL_INTERVAL > TRIGGER_DELAY) {
+    throw new Error("poll interval cannot be higher than trigger delay");
   }
 
   logger.debug({ monitoredMacaddressed: MONITORED_MACADDRESSES });
@@ -53,7 +59,6 @@ async function main() {
   };
 
   let robovac = new eufyrobovac.RoboVac(robovacConfig, ROBOVAC_DEBUG);
-  let svenomaticTriggeredRobovac = false;
   let poll = true;
 
   const cleanup = async () => {
@@ -66,10 +71,12 @@ async function main() {
   process.on("SIGINT", cleanup);
   process.on("SIGTERM", cleanup);
 
+  let svenomaticTriggeredRobovac = false;
+  let noOneHomeFor = 0;
+
   while (poll) {
     const wlanInterfaces = await luci.getWlanDevices();
     logger.debug({ wlanInterfaces: wlanInterfaces });
-
     const connectedMacAddresses = (
       await Promise.all(
         wlanInterfaces.map(async (iface) => {
@@ -86,29 +93,35 @@ async function main() {
       robovacBatteryLevel: robovac.statuses.dps[robovac.BATTERY_LEVEL],
     });
 
-    if (
-      robovac.statuses.dps[robovac.BATTERY_LEVEL] === 100 &&
-      !MONITORED_MACADDRESSES.some((item) =>
-        connectedMacAddresses.includes(item)
-      )
-    ) {
-      svenomaticTriggeredRobovac = true;
-      await robovac.startCleaning();
-      logger.info("triggered robovac");
-    } else if (
+    const isFullyCharged = robovac.statuses.dps[robovac.BATTERY_LEVEL] === 100;
+    const isNoOneHome = !MONITORED_MACADDRESSES.some((item) =>
+      connectedMacAddresses.includes(item)
+    );
+    const isRobovacRunning =
       robovac.statuses.dps[robovac.WORK_STATUS] ===
-        eufyrobovac.WorkStatus.RUNNING &&
-      svenomaticTriggeredRobovac &&
-      MONITORED_MACADDRESSES.some((item) =>
-        connectedMacAddresses.includes(item)
-      )
-    ) {
+      eufyrobovac.WorkStatus.RUNNING;
+
+    if (isFullyCharged && isNoOneHome && !isRobovacRunning) {
+      if (noOneHomeFor < TRIGGER_DELAY) {
+        logger.info(
+          `no one home, triggering robovac in ${TRIGGER_DELAY - noOneHomeFor}ms`
+        );
+        noOneHomeFor += POLL_INTERVAL;
+        continue;
+      } else {
+        svenomaticTriggeredRobovac = true;
+        noOneHomeFor = 0;
+        await robovac.startCleaning();
+        logger.info("triggered robovac");
+      }
+    } else if (isRobovacRunning && !isNoOneHome && svenomaticTriggeredRobovac) {
       svenomaticTriggeredRobovac = false;
       await robovac.goHome();
       logger.info("sent robovac home");
+      noOneHomeFor = 0;
     }
 
-    await new Promise((r) => setTimeout(r, POLL_INTERVAL));
+    await timers.setTimeout(POLL_INTERVAL);
   }
 }
 

@@ -29,7 +29,6 @@ export = async () => {
           OPENWRT_HOST: "192.168.200.252",
           OPENWRT_USERNAME: appName,
           ROBOVAC_IP: "192.168.111.9",
-          POLL_INTERVAL: 1000 * 10,
         },
         secrets: {
           OPENWRT_PASSWORD: secrets.map["OPENWRT_PASSWORD"],
