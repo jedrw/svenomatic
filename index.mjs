@@ -81,7 +81,7 @@ async function main() {
     logger.debug({ connectedMacAddresses: connectedMacAddresses });
 
     await robovac.getStatuses();
-    logger.debug({
+    logger.info({
       robovacStatus: robovac.statuses.dps[robovac.WORK_STATUS].toLowerCase(),
     });
 
