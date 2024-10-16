@@ -83,6 +83,7 @@ async function main() {
     await robovac.getStatuses();
     logger.info({
       robovacStatus: robovac.statuses.dps[robovac.WORK_STATUS].toLowerCase(),
+      robovacBatteryLevel: robovac.statuses.dps[robovac.BATTERY_LEVEL],
     });
 
     if (
