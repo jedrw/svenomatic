@@ -6,9 +6,8 @@ export class LUCI {
     this.host = host;
     this.username = username;
     this.password = password;
-    this.baseUrl = `${this.host}/cgi-bin/luci/rpc`;
     this.client = axios.create({
-      baseURL: this.baseUrl,
+      baseURL: `${this.host}/cgi-bin/luci/rpc`,
       httpsAgent: new https.Agent({
         rejectUnauthorized: false,
       }),
