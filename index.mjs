@@ -10,8 +10,12 @@ const LOG_LEVEL =
     : pino.levels.values.info;
 const ROBOVAC_DEBUG = !!process.env.ROBOVAC_DEBUG;
 
-const POLL_INTERVAL = process.env.POLL_INTERVAL ?? 1000 * 60;
-const TRIGGER_DELAY = process.env.TRIGGER_DELAY ?? 1000 * 60 * 5;
+const POLL_INTERVAL = process.env.POLL_INTERVAL
+  ? Number(process.env.POLL_INTERVAL)
+  : 1000 * 60;
+const TRIGGER_DELAY = process.env.TRIGGER_DELAY
+  ? Number(process.env.TRIGGER_DELAY)
+  : 1000 * 60 * 5;
 const MONITORED_MACADDRESSES = process.env.MONITORED_MACADDRESSES
   ? process.env.MONITORED_MACADDRESSES.toUpperCase().split(",")
   : [];
