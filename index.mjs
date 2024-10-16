@@ -86,8 +86,7 @@ async function main() {
     });
 
     if (
-      robovac.statuses.dps[robovac.WORK_STATUS] ===
-        eufyrobovac.WorkStatus.COMPLETED &&
+      robovac.statuses.dps[robovac.BATTERY_LEVEL] === 100 &&
       !MONITORED_MACADDRESSES.some((item) =>
         connectedMacAddresses.includes(item)
       )
