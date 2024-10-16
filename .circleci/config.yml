@@ -1,0 +1,95 @@
+version: 2.1
+
+orbs:
+  kubernetes: circleci/kubernetes@1.3.1
+
+jobs:
+  build_and_push_image:
+    docker:
+      - image: cimg/base:current
+    parameters:
+      push:
+        type: boolean
+        default: false
+    steps:
+      - setup_remote_docker
+      - checkout
+      - run:
+          name: Login to registry
+          command: docker login docker.lupinelab.co.uk -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD
+      - run:
+          name: Build image
+          command: docker build -t docker.lupinelab.co.uk/${CIRCLE_PROJECT_USERNAME,,}/$CIRCLE_PROJECT_REPONAME:$CIRCLE_SHA1 .
+      - when:
+          condition: << parameters.push >>
+          steps:
+            - run:
+                name: Push image
+                command: docker push docker.lupinelab.co.uk/${CIRCLE_PROJECT_USERNAME,,}/$CIRCLE_PROJECT_REPONAME:$CIRCLE_SHA1
+
+  deploy:
+    docker:
+      - image: cimg/node:lts
+    resource_class: lupinelab/tk3s
+    working_directory: ~/project/deploy
+    steps:
+      - checkout:
+          path: ~/project
+      - kubernetes/install-kubeconfig
+      - run:
+          name: Install pulumi
+          command: |
+            curl -fsSL https://get.pulumi.com -o install_pulumi.sh
+            chmod +x install_pulumi.sh
+            sudo ./install_pulumi.sh --install-root /usr/local
+            rm install_pulumi.sh
+      - run:
+          name: Install kubectl
+          command: |
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+            rm kubectl
+      - run:
+          name: npmrc
+          command: |
+            cat \<<EOF > ./deploy/.npmrc
+            //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+            @lupinelab:registry=https://npm.pkg.github.com
+            always-auth=true
+            EOF
+      - run:
+          name: Install dependencies
+          command: npm ci --prefix ./deploy
+      - run:
+          name: Deploy
+          command: |
+            if [[ $CIRCLE_BRANCH == "main" ]]; then
+              STACK=production
+            else
+              STACK=$CIRCLE_BRANCH
+            fi
+            pulumi up --stack $STACK --yes --cwd ./deploy
+
+workflows:
+  build_and_deploy:
+    jobs:
+      - build_and_push_image:
+          push: true
+          context:
+            - docker.lupinelab.co.uk
+          filters:
+            branches:
+              only: /main/
+
+      - deploy:
+          context:
+            - docker.lupinelab.co.uk
+            - doppler
+            - github
+            - pulumi
+            - tk3s
+          requires:
+            - build_and_push_image
+          filters:
+            branches:
+              only: /main/

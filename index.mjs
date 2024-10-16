@@ -3,7 +3,7 @@ import { exit } from "process";
 import { LUCI } from "./luci.mjs";
 import * as eufyrobovac from "eufy-robovac";
 
-const REFRESH_INTERVAL = process.env["REFRESH_INTERVAL_MS"] ?? 10000;
+const POLL_INTERVAL = process.env["POLL_INTERVAL"] ?? 1000 * 60;
 const MONITORED_MACADDRESSES = process.env["MONITORED_MACADDRESSES"]
   ? process.env["MONITORED_MACADDRESSES"].toUpperCase().split(",")
   : [];
@@ -34,8 +34,8 @@ async function main() {
 
   await luci.init();
 
-  let updateInterval = 1000 * 60 * 30;
-  const tokenUpdater = luci.autoUpdateToken(updateInterval);
+  let tokenUpdateInterval = 1000 * 60 * 30;
+  const tokenUpdater = luci.autoUpdateToken(tokenUpdateInterval);
 
   const robovacConfig = {
     deviceId: ROBOVAC_DEVICE_ID,
@@ -96,7 +96,7 @@ async function main() {
       logger.info("sent robovac home");
     }
 
-    await new Promise((r) => setTimeout(r, REFRESH_INTERVAL));
+    await new Promise((r) => setTimeout(r, POLL_INTERVAL));
   }
 }
 

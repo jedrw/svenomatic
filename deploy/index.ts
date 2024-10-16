@@ -1,8 +1,15 @@
+import * as doppler from "@pulumiverse/doppler";
 import * as pulumi from "@pulumi/pulumi";
 import { Deployment, getEnv, k8sProvider } from "@lupinelab/tk3s-deployment";
 
 export = async () => {
   const appName = pulumi.getProject();
+
+  const secrets = await doppler.getSecrets({
+    project: appName,
+    config: getEnv(),
+  });
+
   const releaseName = `${getEnv()}-${appName}`;
   new Deployment(
     appName,
@@ -22,11 +29,12 @@ export = async () => {
           OPENWRT_HOST: "192.168.200.252",
           OPENWRT_USERNAME: appName,
           ROBOVAC_IP: "192.168.111.9",
+          POLL_INTERVAL: 1000 * 10,
         },
         secrets: {
-          OPENWRT_PASSWORD: process.env["OPENWRT_PASSWORD"],
-          ROBOVAC_DEVICE_ID: process.env["ROBOVAC_DEVICE_ID"],
-          ROBOVAC_LOCAL_KEY: process.env["ROBOVAC_LOCAL_KEY"],
+          OPENWRT_PASSWORD: secrets.map["OPENWRT_PASSWORD"],
+          ROBOVAC_DEVICE_ID: secrets.map["ROBOVAC_DEVICE_ID"],
+          ROBOVAC_LOCAL_KEY: secrets.map["ROBOVAC_LOCAL_KEY"],
         },
       },
     },
