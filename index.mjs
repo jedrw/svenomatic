@@ -5,7 +5,7 @@ import * as eufyrobovac from "eufy-robovac";
 
 const REFRESH_INTERVAL = process.env["REFRESH_INTERVAL_MS"] ?? 10000;
 const MONITORED_MACADDRESSES = process.env["MONITORED_MACADDRESSES"]
-  ? process.env["MONITORED_MACADDRESSES"].split(",")
+  ? process.env["MONITORED_MACADDRESSES"].toUpperCase().split(",")
   : [];
 
 const OPENWRT_HOST = process.env["OPENWRT_HOST"];
