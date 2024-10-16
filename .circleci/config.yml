@@ -42,14 +42,14 @@ jobs:
       - run:
           name: npmrc
           command: |
-            cat \<<EOF > ./deploy/.npmrc
+            cat \<<EOF > .npmrc
             //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
             @lupinelab:registry=https://npm.pkg.github.com
             always-auth=true
             EOF
       - run:
           name: Install dependencies
-          command: npm ci --prefix ./deploy
+          command: npm ci
       - run:
           name: Deploy
           command: |
@@ -58,7 +58,7 @@ jobs:
             else
               STACK=$CIRCLE_BRANCH
             fi
-            pulumi up --stack $STACK --yes --cwd ./deploy
+            pulumi up --stack $STACK --yes
 
 workflows:
   build_and_deploy:
