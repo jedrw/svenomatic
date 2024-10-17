@@ -111,7 +111,6 @@ async function main() {
           `no one home, triggering robovac in ${TRIGGER_DELAY - noOneHomeFor}ms`
         );
         noOneHomeFor += POLL_INTERVAL;
-        continue;
       } else {
         svenomaticTriggeredRobovac = true;
         noOneHomeFor = 0;

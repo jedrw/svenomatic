@@ -51,11 +51,11 @@ export class LUCI {
     }
   }
 
-  async getWifiClients(config) {
+  async getWifiClients(iface) {
     let params = JSON.stringify({
       id: 1,
       method: "wifi.getiwinfo",
-      params: [config],
+      params: [iface],
     });
 
     try {
