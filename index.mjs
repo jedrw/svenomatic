@@ -108,7 +108,9 @@ async function main() {
     if (isFullyCharged && isNoOneHome && !isRobovacRunning) {
       if (noOneHomeFor < TRIGGER_DELAY) {
         logger.info(
-          `no one home, triggering robovac in ${TRIGGER_DELAY - noOneHomeFor}ms`
+          `no one home, triggering robovac in ${
+            (TRIGGER_DELAY - noOneHomeFor) / 1000
+          }s`
         );
         noOneHomeFor += POLL_INTERVAL;
       } else {
@@ -120,7 +122,10 @@ async function main() {
     } else if (isRobovacRunning && !isNoOneHome && svenomaticTriggeredRobovac) {
       svenomaticTriggeredRobovac = false;
       await robovac.goHome();
-      logger.info("sent robovac home");
+      logger.info("someone came home, sent robovac home");
+      noOneHomeFor = 0;
+    } else if (noOneHomeFor !== 0) {
+      logger.info("someone came home, resetting trigger delay");
       noOneHomeFor = 0;
     }
 
