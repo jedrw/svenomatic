@@ -1,7 +1,9 @@
-FROM node:lts-slim
+FROM oven/bun:alpine
 
-COPY . .
+COPY package.json ./
+COPY bun.lockb ./
+COPY src ./
 
-RUN npm ci
+RUN bun install --frozen-lockfile
 
-CMD ["npm", "run", "start"]
+CMD ["bun", "run", "start"]

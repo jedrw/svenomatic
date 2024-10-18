@@ -1,15 +1,15 @@
 {
   "name": "svenomatic",
-  "version": "1.0.0",
-  "description": "Automatic Svenning!",
-  "main": "index.mjs",
+  "module": "index.ts",
+  "type": "module",
   "scripts": {
-    "start": "node index.mjs"
+    "start": "bun run index.ts"
   },
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
-    "@types/node": "^22.7.5"
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.6.3"
   },
   "dependencies": {
     "axios": "^1.7.7",
