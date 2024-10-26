@@ -32,7 +32,7 @@ const ROBOVAC_DEBUG = !!process.env.ROBOVAC_DEBUG;
 const logger = pino.pino({
   base: null,
   timestamp: pino.stdTimeFunctions.isoTime,
-  levelVal: LOG_LEVEL,
+  level: pino.levels.labels[LOG_LEVEL],
 });
 
 async function main() {
@@ -147,6 +147,8 @@ async function main() {
       await robovac.goHome();
       logger.info("someone came home, sent robovac home");
       noOneHomeFor = 0;
+    } else if (!isRobovacRunning) {
+      svenomaticTriggeredRobovac = false;
     } else if (noOneHomeFor !== 0) {
       logger.info("someone came home, resetting trigger delay");
       noOneHomeFor = 0;
