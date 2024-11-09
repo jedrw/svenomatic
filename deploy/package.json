@@ -6,7 +6,7 @@
     "typescript": "^5.5.4"
   },
   "dependencies": {
-    "@lupinelab/tk3s-deployment": "^0.0.9",
+    "@jedrw/tk3s-deployment": "^0.0.13",
     "@pulumi/kubernetes": "^4.17.1",
     "@pulumi/pulumi": "^3.129.0",
     "@pulumiverse/doppler": "^0.9.0",

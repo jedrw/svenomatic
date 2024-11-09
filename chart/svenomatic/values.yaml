@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   registry: docker.lupinelab.co.uk
-  repository: lupinelab
+  repository: jedrw
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: latest

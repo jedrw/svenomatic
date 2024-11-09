@@ -1,6 +1,6 @@
 import * as doppler from "@pulumiverse/doppler";
 import * as pulumi from "@pulumi/pulumi";
-import { Deployment, getEnv, k8sProvider } from "@lupinelab/tk3s-deployment";
+import { Deployment, getEnv, k8sProvider } from "@jedrw/tk3s-deployment";
 
 export = async () => {
   const appName = pulumi.getProject();

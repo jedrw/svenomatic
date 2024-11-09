@@ -44,7 +44,7 @@ jobs:
           command: |
             cat \<<EOF > .npmrc
             //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
-            @lupinelab:registry=https://npm.pkg.github.com
+            @jedrw:registry=https://npm.pkg.github.com
             always-auth=true
             EOF
       - run:
