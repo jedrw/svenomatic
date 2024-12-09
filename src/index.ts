@@ -2,11 +2,15 @@ import * as pino from "pino";
 import * as timers from "node:timers/promises";
 import { LUCI } from "./luci.ts";
 import * as eufyrobovac from "eufy-robovac";
+import { serve } from "bun";
 
 const LOG_LEVEL =
   process.env.LOG_LEVEL === "debug"
     ? pino.levels.values.debug
     : pino.levels.values.info;
+const SERVER_PORT = process.env.SERVER_PORT
+  ? Number(process.env.SERVER_PORT)
+  : 8080;
 const POLL_INTERVAL = process.env.POLL_INTERVAL
   ? Number(process.env.POLL_INTERVAL)
   : 1000 * 60;
@@ -78,22 +82,41 @@ async function main() {
   };
 
   const robovac = new eufyrobovac.RoboVac(robovacConfig, ROBOVAC_DEBUG);
-  let poll = true;
 
-  const cleanup = async () => {
-    poll = false;
-    clearInterval(tokenUpdater);
-    await robovac.disconnect();
-    process.exit(0);
-  };
+  async function handleHealthz() {
+    try {
+      await robovac.getStatuses(true);
+    } catch (err) {
+      return new Response("ERROR", { status: 503 });
+    }
 
-  process.on("SIGINT", cleanup);
-  process.on("SIGTERM", cleanup);
+    return new Response("OK", { status: 200 });
+  }
+
+  function handleReadyz() {
+    return new Response("OK", { status: 200 });
+  }
+
+  serve({
+    port: SERVER_PORT,
+    fetch(req) {
+      const url = new URL(req.url);
+      if (url.pathname === "/healthz") {
+        return handleHealthz();
+      }
+
+      if (url.pathname === "/readyz") {
+        return handleReadyz();
+      }
+
+      return new Response("Not Found", { status: 404 });
+    },
+  });
 
   let svenomaticTriggeredRobovac = false;
   let noOneHomeFor = 0;
 
-  while (poll) {
+  const checkRobovacInterval = setInterval(async () => {
     const wlanInterfaces = await luci.getWlanDevices();
     logger.debug({ wlanInterfaces: wlanInterfaces });
     const connectedMacAddresses = (
@@ -153,9 +176,17 @@ async function main() {
       logger.info("someone came home, resetting trigger delay");
       noOneHomeFor = 0;
     }
+  }, POLL_INTERVAL);
 
-    await timers.setTimeout(POLL_INTERVAL);
-  }
+  const cleanup = async () => {
+    clearInterval(tokenUpdater);
+    clearInterval(checkRobovacInterval);
+    await robovac.disconnect();
+    process.exit(0);
+  };
+
+  process.on("SIGINT", cleanup);
+  process.on("SIGTERM", cleanup);
 }
 
 if (import.meta.main) {

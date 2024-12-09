@@ -15,6 +15,7 @@ image:
 
 config:
   LOG_LEVEL: ""
+  SERVER_PORT: 8080
   ROBOVAC_DEBUG: ""
   POLL_INTERVAL: ""
   TRIGGER_DELAY: ""
