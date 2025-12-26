@@ -25,7 +25,7 @@ export = async () => {
           password: process.env["REGISTRY_PASSWORD"],
         },
         config: {
-          LOG_LEVEL: "debug",
+          LOG_LEVEL: "",
           MONITORED_MACADDRESSES: "FE:93:D6:9E:52:AC,92:6E:51:CD:91:FC",
           OPENWRT_HOST: "192.168.200.252",
           OPENWRT_USERNAME: appName,
